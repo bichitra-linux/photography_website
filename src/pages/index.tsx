@@ -12,8 +12,6 @@ import { Photo } from "@/types/types";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { Gallery } from "@/components/gallery/Gallery";
 
-
-
 const tabs = [
   {
     key: "all",
@@ -27,11 +25,16 @@ const tabs = [
     key: "forests",
     display: "Forests",
   },
+  {
+    key: "cities",
+    display: "Cities",
+  },
 ];
 
 type HomeProps = {
   oceans: Photo[];
   forests: Photo[];
+  cities: Photo[];
 };
 
 export const getStaticProps: GetStaticProps<HomeProps> = async () => {
@@ -40,27 +43,29 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     fetch: nodeFetch as unknown as typeof fetch,
   });
 
-  const [oceans, forests] = await Promise.all([
+  const [oceans, forests, cities] = await Promise.all([
     getImages(unsplash, "oceans"),
     getImages(unsplash, "forests"),
+    getImages(unsplash, "cities"),
   ]);
 
   return {
     props: {
       oceans,
       forests,
+      cities,
     },
     // revalidate: 10,    uncomment for ISR
   };
 };
 
-export default function Home({ oceans, forests }: HomeProps) {
+export default function Home({ oceans, forests, cities }: HomeProps) {
   const allPhotos = useMemo(() => {
-    const all = [...oceans, ...forests];
+    const all = [...oceans, ...forests, ...cities];
 
     return all.sort((a, b) => b.likes - a.likes);
-  }, [oceans, forests]);
-  
+  }, [oceans, forests, cities]);
+
   return (
     <div>
       {/* Head component */}
@@ -91,15 +96,18 @@ export default function Home({ oceans, forests }: HomeProps) {
       {/* Header */}
 
       <header className="fixed top-0 w-full z-30 flex justify-between items-center h-[90px] px-10">
-        <span className="uppercase text-lg font-medium">
-          Photography Website
-        </span>
-        <Link
-          href="#"
-          className="rounded-3xl bg-white text-stone-700 px-3 py-2 hover:bg-opacity-90"
-        >
-          Get in touch
-        </Link>
+        <div className="hidden">ok</div>
+        <div>
+          <span className="uppercase text-lg font-medium">Photography Website</span>
+        </div>
+        <div>
+          <Link
+            href="#"
+            className="rounded-3xl bg-white text-stone-700 px-3 py-2 hover:bg-opacity-90"
+          >
+            Get in touch
+          </Link>
+        </div>
       </header>
 
       {/* main */}
@@ -133,19 +141,19 @@ export default function Home({ oceans, forests }: HomeProps) {
               <TabPanel>
                 <Gallery photos={forests} />
               </TabPanel>
+              <TabPanel>
+                <Gallery photos={cities} />
+              </TabPanel>
             </TabPanels>
           </TabGroup>
         </div>
       </main>
 
       {/* Footer */}
-      
+
       <footer className="relative h-[90px] flex justify-center items-center uppercase text-lg font-medium z-20">
-        <p>Photography portfolio</p>
+        <span>Photography portfolio</span>
       </footer>
-
-      
-
     </div>
   );
 }
