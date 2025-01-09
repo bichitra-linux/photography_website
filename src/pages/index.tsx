@@ -5,7 +5,7 @@ import { GetStaticProps } from "next";
 import nodeFetch from "node-fetch";
 import { createApi } from "unsplash-js";
 import classNames from "classnames";
-import bgImage from "@/../public/photography-bg.jpeg";
+import bgImage from "../../public/Images/photography-bg.jpeg";
 import Link from "next/link";
 import { getImages } from "@/utils/image-util";
 import { Photo } from "@/types/types";
