@@ -18,23 +18,39 @@ const tabs = [
     display: "All",
   },
   {
-    key: "oceans",
-    display: "Oceans",
+    key: "onepiece",
+    display: "OnePiece",
   },
   {
-    key: "forests",
-    display: "Forests",
+    key: "naruto",
+    display: "Naruto",
   },
   {
-    key: "cities",
-    display: "Cities",
+    key: "bleach",
+    display: "Bleach",
   },
 ];
 
 type HomeProps = {
-  oceans: Photo[];
-  forests: Photo[];
-  cities: Photo[];
+  onePiece: Photo[];
+  naruto: Photo[];
+  bleach: Photo[];
+};
+
+const fetchPinterestImages = async (query: string): Promise<Photo[]> => {
+  const response = await fetch(`https://api.pinterest.com/v1/search/pins/?query=${query}&access_token=${process.env.PINTEREST_ACCESS_TOKEN}`);
+  const data = await response.json();
+
+  if (!data || !data.data) {
+    console.error(`Failed to fetch Pinterest images for query: ${query}`);
+    return [];
+  }
+
+  return data.data.map((item: any) => ({
+    id: item.id,
+    url: item.image.original.url,
+    likes: item.like_count,
+  }));
 };
 
 export const getStaticProps: GetStaticProps<HomeProps> = async () => {
@@ -43,34 +59,44 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     fetch: nodeFetch as unknown as typeof fetch,
   });
 
-  const [oceans, forests, cities] = await Promise.all([
-    getImages(unsplash, "oceans"),
-    getImages(unsplash, "forests"),
-    getImages(unsplash, "cities"),
+  const [onePieceUnsplash, narutoUnsplash, bleachUnsplash] = await Promise.all([
+    getImages(unsplash, "one piece"),
+    getImages(unsplash, "naruto"),
+    getImages(unsplash, "bleach"),
   ]);
+
+  const [onePiecePinterest, narutoPinterest, bleachPinterest] = await Promise.all([
+    fetchPinterestImages("one piece"),
+    fetchPinterestImages("naruto"),
+    fetchPinterestImages("bleach"),
+  ]);
+
+  const onePiece = [...onePieceUnsplash, ...onePiecePinterest];
+  const naruto = [...narutoUnsplash, ...narutoPinterest];
+  const bleach = [...bleachUnsplash, ...bleachPinterest];
 
   return {
     props: {
-      oceans,
-      forests,
-      cities,
+      onePiece,
+      naruto,
+      bleach,
     },
     // revalidate: 10,    uncomment for ISR
   };
 };
 
-export default function Home({ oceans, forests, cities }: HomeProps) {
+export default function Home({ onePiece, naruto, bleach }: HomeProps) {
   const allPhotos = useMemo(() => {
-    const all = [...oceans, ...forests, ...cities];
+    const all = [...onePiece, ...naruto, ...bleach];
 
     return all.sort((a, b) => b.likes - a.likes);
-  }, [oceans, forests, cities]);
+  }, [onePiece, naruto, bleach]);
 
   return (
     <div>
       {/* Head component */}
       <Head>
-        <title>photography Website</title>
+        <title>Anime photography Website</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         <meta charSet="UTF-8" />
         <meta name="author" content="Bichitra Gautam" />
@@ -98,7 +124,7 @@ export default function Home({ oceans, forests, cities }: HomeProps) {
       <header className="fixed top-0 w-full z-30 flex justify-between items-center h-[90px] px-10">
         <div className="hidden">ok</div>
         <div>
-          <span className="uppercase text-lg font-medium">Photography Website</span>
+          <span className="uppercase text-lg font-medium">Anime Photography Website</span>
         </div>
         <div>
           <Link
@@ -136,13 +162,13 @@ export default function Home({ oceans, forests, cities }: HomeProps) {
                 <Gallery photos={allPhotos} />
               </TabPanel>
               <TabPanel>
-                <Gallery photos={oceans} />
+                <Gallery photos={onePiece} />
               </TabPanel>
               <TabPanel>
-                <Gallery photos={forests} />
+                <Gallery photos={naruto} />
               </TabPanel>
               <TabPanel>
-                <Gallery photos={cities} />
+                <Gallery photos={bleach} />
               </TabPanel>
             </TabPanels>
           </TabGroup>
